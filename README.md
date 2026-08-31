@@ -29,7 +29,7 @@ Wildcard — submitted to the **Build with IBM BOB** hackathon under the open/wi
 
 ## AI approach and architecture
 Open-vocabulary pipeline — no custom training data required:
-1. **OCR** — Gemini's vision API (gemini-3.5-flash, free tier) reads the raw handwritten text from the prescription image, using its knowledge of real medication names to resolve ambiguous handwriting the way a pharmacist would. Falls back to Claude's vision API (claude-opus-5, paid) if `GEMINI_API_KEY` isn't configured or the call fails, then to pretrained TrOCR (microsoft/trocr-base-handwritten) if neither key is set, so the app still works offline. No fine-tuning needed either way. See `backend/app/services/gemini_ocr.py`, `backend/app/services/vision_ocr.py`, and `backend/app/services/ocr.py`.
+1. **OCR** — Gemini's vision API (gemini-3.5-flash, free tier) reads the raw handwritten text from the prescription image, using its knowledge of real medication names to resolve ambiguous handwriting the way a pharmacist would. Falls back to pretrained TrOCR (microsoft/trocr-base-handwritten) if `GEMINI_API_KEY` isn't set or the call fails, so the app still works offline. No fine-tuning needed either way. See `backend/app/services/gemini_ocr.py` and `backend/app/services/ocr.py`.
 2. **Fuzzy matching** — RxNorm's approximate-match API maps that raw (possibly messy) text to real drug name candidates, ranked by match score. This is what makes the system open-vocabulary — not limited to a fixed set of trained classes.
 3. **Canonicalization** — each candidate is looked up in openFDA for its full drug profile.
 4. **Diagnosis matching** — Gemini embeddings (gemini-embedding-001, free tier) compute semantic similarity between the patient's stated diagnosis/symptoms and each candidate's indications, re-ranking candidates and flagging low-confidence matches for pharmacist review.
@@ -74,7 +74,7 @@ IBM BOB was used as the primary coding assistant for the OCR pipeline rework in
 ```bash
 cd backend
 pip install -r requirements.txt
-cp .env.example .env   # fill in your GEMINI_API_KEY (free -- powers OCR, diagnosis matching, and patient summaries); ANTHROPIC_API_KEY is an optional paid OCR fallback
+cp .env.example .env   # fill in your GEMINI_API_KEY (free -- powers OCR, diagnosis matching, and patient summaries)
 uvicorn app.main:app --reload
 ```
 
