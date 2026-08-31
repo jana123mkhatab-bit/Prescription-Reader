@@ -38,16 +38,35 @@ Open-vocabulary pipeline — no custom training data required:
 ### The review flag
 `flagged_for_review` fires if *either*: the OCR→RxNorm match score is low (handwriting was ambiguous), or the diagnosis match score is low (the top drug doesn't semantically fit the stated diagnosis). It never silently auto-approves a low-confidence result — the UI must surface it as needing pharmacist verification.
 
-## How AI development tools were used
-This repository was prepared for public release with help from **Claude Code** (Anthropic),
-used as a coding/repo-ops assistant:
-- Audited the working tree before making the repo public and caught a real, live-valued
-  `backend/.env` (Gemini/Anthropic API keys) that would otherwise have been committed.
-- Authored the `.gitignore` (excluding secrets, `venv/`, `node_modules/`, `.next/`,
-  `__pycache__/`, logs, and scratch API-response captures).
-- Initialized the git repository, staged the correct file set, and connected/pushed it to
-  the public GitHub remote.
-- Authored this README against the hackathon's required submission format.
+## How IBM BOB was used
+IBM BOB was used as the primary coding assistant for the OCR pipeline rework in
+`backend/app/services/ocr.py` and `backend/app/routes/prescription.py`:
+
+- **Caught a conflict before coding.** The request assumed TrOCR, but `ocr.py` had a
+  documented prior decision to use Tesseract instead, because TrOCR was found to hallucinate
+  on out-of-vocabulary drug names. BOB surfaced that conflict via a clarifying question
+  instead of silently picking a side; the decision was made to reintroduce TrOCR as
+  originally requested.
+- **Rewrote `ocr.py`** — added an OpenCV preprocessing pipeline (grayscale → CLAHE contrast →
+  Gaussian denoise → Otsu binarize → minAreaRect-based deskew, with each step logged for
+  debugging) and replaced the single greedy TrOCR read with `read_text_candidates()`, using
+  beam search (`num_beams=5`, `num_return_sequences=5`) to return 5 ranked hypotheses instead
+  of one.
+- **Updated `prescription.py`** — added `_best_ocr_hypothesis()`, which runs RxNorm
+  fuzzy-matching against all 5 hypotheses concurrently (`asyncio.gather`/`to_thread`),
+  combines each hypothesis's OCR confidence with its RxNorm match score (0.4/0.6 weighting),
+  logs all 5 for debugging, and picks the winner. This replaced the old single-shot OCR +
+  RxNorm call in the `/analyze` route, leaving the `flagged_for_review` threshold logic
+  untouched.
+- **Updated `requirements.txt`** — swapped `pytesseract` out for `torch`, `transformers`,
+  `opencv-python`.
+- **Actually tested it, not just wrote it**: installed the missing `opencv-python`
+  dependency, then ran the real pipeline three times — preprocessing alone, TrOCR beam search
+  alone (confirmed 5 distinct ranked hypotheses, including a deskew trigger on a rotated
+  crop), and the full `_best_ocr_hypothesis` flow end-to-end against the live RxNorm API —
+  before reporting it done. It also flagged an unrelated pre-existing quirk noticed while
+  testing (RxNorm's match scores coming back low even on exact matches) rather than silently
+  fixing or ignoring it.
 
 ## Setup
 
