@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Brand — deep muted indigo, referencing prescription-pad ink. Flat, never a gradient. */
+  --brand: #3d4e8c;
+  --brand-ink: #2c3968;
+  --brand-soft: #e8eaf5;
+
+  /* Neutrals — warm paper, not sterile white */
+  --surface: #faf9f6;
+  --surface-raised: #ffffff;
+  --surface-sunken: #f1efe9;
+  --ink: #1b2233;
+  --ink-muted: #565f74;
+  --ink-faint: #8b91a3;
+  --border: #e3e0d7;
+
+  /* Semantic 3-state system — kept visually distinct from --brand everywhere */
+  --success: #2f9e5c;
+  --success-soft: #e4f5eb;
+  --warning: #c98a1f;
+  --warning-soft: #faf1de;
+  --danger: #c4483c;
+  --danger-soft: #fbeae8;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Public Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
