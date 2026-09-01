@@ -89,12 +89,8 @@ npm install
 npm run dev
 ```
 
-Set `NEXT_PUBLIC_API_URL` if your backend isn't on `localhost:8000`.
 
-## Still needed
-- [ ] Test with real handwritten prescription samples (crop to just the drug name for best OCR results)
-- [ ] Tune MATCH_SCORE_THRESHOLD / DIAGNOSIS_MATCH_THRESHOLD in app/routes/prescription.py
-- [ ] Record demo video (max 3 min) once working end-to-end
+
 
 ## Safety note
 This tool is a decision-support aid, not a replacement for pharmacist or doctor judgment.
