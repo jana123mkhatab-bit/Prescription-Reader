@@ -60,10 +60,10 @@ export default function ScanDetailPage() {
   const top = scan.top_pick;
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6 py-2">
+    <div className="flex max-w-4xl flex-col gap-6 py-2">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-xl font-medium text-ink">Verify reading</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">Verify reading</h1>
           <p className="text-xs text-ink-faint">{new Date(scan.created_at).toLocaleString()}</p>
         </div>
         <Badge tone={STATUS_TONE[scan.status]}>{STATUS_LABEL[scan.status]}</Badge>

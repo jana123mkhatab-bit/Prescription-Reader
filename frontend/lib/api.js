@@ -27,11 +27,12 @@ async function handle(res) {
   return res.json();
 }
 
-export async function analyzePrescription({ imageFile, diagnosis = "", source = "patient" }) {
+export async function analyzePrescription({ imageFile, diagnosis = "", source = "patient", allergies = [] }) {
   const formData = new FormData();
   formData.append("image", imageFile);
   formData.append("diagnosis", diagnosis);
   formData.append("source", source);
+  formData.append("allergies", JSON.stringify(allergies));
 
   // CPU inference (TrOCR) can take 1-3 minutes on first run while the model warms up.
   const controller = new AbortController();
@@ -89,4 +90,52 @@ export async function decideScan(id, { action, drugName }) {
   const record = await handle(res);
   scanCache.set(id, record);
   return record;
+}
+
+async function postJSON(path, body) {
+  let res;
+  try {
+    res = await fetch(`${API_URL}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new ApiError("Couldn't reach the server. Check your connection and try again.", 0);
+  }
+  return handle(res);
+}
+
+export function checkInteractions(drugNames) {
+  return postJSON("/api/interactions/check", { drug_names: drugNames });
+}
+
+export async function getAnalytics() {
+  let res;
+  try {
+    res = await fetch(`${API_URL}/api/analytics`);
+  } catch {
+    throw new ApiError("Couldn't reach the server. Check your connection and try again.", 0);
+  }
+  return handle(res);
+}
+
+export function chatAboutDrug(drugName, question, history) {
+  return postJSON(`/api/drugs/${encodeURIComponent(drugName)}/chat`, { question, history });
+}
+
+export async function createShareLink(scanId) {
+  const { token, path } = await postJSON("/api/share", { scan_id: scanId });
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  return { token, url: `${origin}${path}` };
+}
+
+export async function getSharedCard(token) {
+  let res;
+  try {
+    res = await fetch(`${API_URL}/api/share/${token}`);
+  } catch {
+    throw new ApiError("Couldn't reach the server. Check your connection and try again.", 0);
+  }
+  return handle(res);
 }

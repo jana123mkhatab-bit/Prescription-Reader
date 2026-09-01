@@ -22,9 +22,9 @@ export default function QueuePage() {
   }, [scans, filter]);
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-6 py-2">
+    <div className="flex max-w-5xl flex-col gap-6 py-2">
       <div>
-        <h1 className="font-display text-2xl font-medium text-ink">Scan queue</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">Scan queue</h1>
         <p className="mt-1 text-sm text-ink-muted">Every prescription read, in one place.</p>
       </div>
 

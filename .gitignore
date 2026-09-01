@@ -16,6 +16,7 @@ npm-debug.log*
 
 # Captured API response / scratch artifacts
 resp*.json
+demo_video.mp4
 
 # Editor/tooling
 .claude/

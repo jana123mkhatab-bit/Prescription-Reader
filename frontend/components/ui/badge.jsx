@@ -8,6 +8,8 @@ const badgeVariants = cva(
       tone: {
         neutral: "bg-surface-sunken text-ink-muted",
         brand: "bg-brand-soft text-brand-ink",
+        secondary: "bg-secondary-soft text-secondary-ink",
+        violet: "bg-violet-soft text-violet-ink",
         success: "bg-success-soft text-success",
         warning: "bg-warning-soft text-warning",
         danger: "bg-danger-soft text-danger",

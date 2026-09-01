@@ -3,31 +3,104 @@
 @tailwind utilities;
 
 :root {
-  /* Brand — deep muted indigo, referencing prescription-pad ink. Flat, never a gradient. */
-  --brand: #3d4e8c;
-  --brand-ink: #2c3968;
-  --brand-soft: #e8eaf5;
+  /* Brand — deep forest teal, the identity color: logo, active nav, primary actions */
+  --brand: #0e5c52;
+  --brand-ink: #0a413a;
+  --brand-soft: #dceae6;
 
-  /* Neutrals — warm paper, not sterile white */
-  --surface: #faf9f6;
+  /* Secondary — muted gold, decorative energy only (chat "new" badges, gradients).
+     Close in family to --warning by design (matches the reference banner, where
+     gold reads as both "accent" and "needs attention"), but kept a distinct value. */
+  --secondary: #c1802e;
+  --secondary-ink: #8f5f22;
+  --secondary-soft: #f3e4c8;
+
+  /* Reserved for the "Ask about this medication" chat surface only — a quiet
+     plum instead of a cool violet, so it still sits inside the warm palette. */
+  --violet: #7a4a6f;
+  --violet-ink: #5c3654;
+  --violet-soft: #efe1ec;
+
+  /* Neutrals — warm cream, not sterile white or cool teal-tint */
+  --surface: #f3eee1;
   --surface-raised: #ffffff;
-  --surface-sunken: #f1efe9;
-  --ink: #1b2233;
-  --ink-muted: #565f74;
-  --ink-faint: #8b91a3;
-  --border: #e3e0d7;
+  --surface-sunken: #eae2cd;
+  --ink: #17262a;
+  --ink-muted: #55645f;
+  --ink-faint: #8a968f;
+  --border: #ded2b0;
 
-  /* Semantic 3-state system — kept visually distinct from --brand everywhere */
-  --success: #2f9e5c;
-  --success-soft: #e4f5eb;
-  --warning: #c98a1f;
-  --warning-soft: #faf1de;
-  --danger: #c4483c;
-  --danger-soft: #fbeae8;
+  /* Semantic 3-state system — kept visually distinct from --brand and --secondary */
+  --success: #3f8f5f;
+  --success-soft: #e3efe2;
+  --warning: #c1802e;
+  --warning-soft: #f3e4c8;
+  --danger: #b14a3e;
+  --danger-soft: #f4e2de;
 
-  --font-display: "Fraunces", Georgia, serif;
-  --font-body: "Public Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --brand: #4fb6a6;
+    --brand-ink: #7ed0c2;
+    --brand-soft: #1c3733;
+
+    --secondary: #e0a855;
+    --secondary-ink: #f0c687;
+    --secondary-soft: #3a2d18;
+
+    --violet: #c98fbb;
+    --violet-ink: #dcb0d0;
+    --violet-soft: #3a2536;
+
+    --surface: #14201f;
+    --surface-raised: #1b2a28;
+    --surface-sunken: #22332f;
+    --ink: #f0ead9;
+    --ink-muted: #b8c2bc;
+    --ink-faint: #7c8b85;
+    --border: #2e4038;
+
+    --success: #6fc98d;
+    --success-soft: #1c3324;
+    --warning: #e0a855;
+    --warning-soft: #3a2d18;
+    --danger: #e08072;
+    --danger-soft: #3a211d;
+  }
+}
+
+:root[data-theme="dark"] {
+  --brand: #4fb6a6;
+  --brand-ink: #7ed0c2;
+  --brand-soft: #1c3733;
+
+  --secondary: #e0a855;
+  --secondary-ink: #f0c687;
+  --secondary-soft: #3a2d18;
+
+  --violet: #c98fbb;
+  --violet-ink: #dcb0d0;
+  --violet-soft: #3a2536;
+
+  --surface: #14201f;
+  --surface-raised: #1b2a28;
+  --surface-sunken: #22332f;
+  --ink: #f0ead9;
+  --ink-muted: #b8c2bc;
+  --ink-faint: #7c8b85;
+  --border: #2e4038;
+
+  --success: #6fc98d;
+  --success-soft: #1c3324;
+  --warning: #e0a855;
+  --warning-soft: #3a2d18;
+  --danger: #e08072;
+  --danger-soft: #3a211d;
 }
 
 * {

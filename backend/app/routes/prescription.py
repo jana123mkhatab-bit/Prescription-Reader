@@ -1,17 +1,16 @@
 import asyncio
+import json
 import logging
 
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
 from PIL import Image
 import io
 
-from app.services import ocr, rxnorm_match, drug_data, gemini_ai, scan_store
+from app.services import ocr, rxnorm_match, drug_data, gemini_ai, scan_store, allergy_check
+from app.services.constants import MATCH_SCORE_THRESHOLD, DIAGNOSIS_MATCH_THRESHOLD
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
-
-MATCH_SCORE_THRESHOLD = 0.5  # below this, flag for pharmacist review
-DIAGNOSIS_MATCH_THRESHOLD = 0.5
 
 # Weights for combining an OCR hypothesis's own confidence with how well it
 # fuzzy-matches a real drug name in RxNorm, to pick the best of several OCR
@@ -30,6 +29,23 @@ UNAVAILABLE_SUMMARY = {
     "nutrition_notes": None,
     "error": "AI summary unavailable — configure GEMINI_API_KEY.",
 }
+
+
+def _generate_bilingual_summary(profile: dict, diagnosis: str) -> dict:
+    """
+    Generates the EN and AR patient summaries once and caches both on the scan
+    record, so the frontend can toggle language instantly without re-running
+    the pipeline. Each language degrades independently -- one failing doesn't
+    block the other.
+    """
+    summary = {}
+    for lang in ("en", "ar"):
+        try:
+            summary[lang] = gemini_ai.generate_patient_summary(profile, diagnosis, language=lang)
+        except Exception:
+            logger.warning("Patient summary generation failed for language=%s (Gemini unavailable?).", lang, exc_info=True)
+            summary[lang] = UNAVAILABLE_SUMMARY
+    return summary
 
 
 async def _best_ocr_hypothesis(pil_image: Image.Image) -> tuple[str, list[dict], float]:
@@ -87,6 +103,7 @@ async def analyze_prescription(
     image: UploadFile = File(...),
     diagnosis: str = Form(""),
     source: str = Form("patient"),
+    allergies: str = Form(""),
 ):
     """
     Full pipeline (open-vocabulary, no custom training data required):
@@ -95,12 +112,24 @@ async def analyze_prescription(
     2. RxNorm approximate-match maps that raw text to real drug name candidates
     3. Look up each candidate's profile via openFDA
     4. If a diagnosis/symptom string is provided, re-rank candidates by semantic match
-    5. Generate a plain-language patient summary for the top candidate
+    5. Generate plain-language patient summaries (English + Arabic) for the top candidate
+    6. Cross-check the top candidate against the patient's stated allergies, if any
 
     Every request is persisted as a scan record (see app.services.scan_store) so it
     shows up in the pharmacist queue/analytics, regardless of whether it was submitted
     from patient or pharmacist mode.
+
+    allergies: JSON-encoded array of allergy strings, e.g. '["penicillin", "latex"]'.
+    The patient's allergy list lives in browser localStorage (no accounts in this
+    app), so it's sent fresh on every analyze call rather than stored server-side.
     """
+    try:
+        allergy_list = json.loads(allergies) if allergies.strip() else []
+        if not isinstance(allergy_list, list):
+            allergy_list = []
+    except json.JSONDecodeError:
+        allergy_list = []
+
     try:
         contents = await image.read()
         pil_image = Image.open(io.BytesIO(contents))
@@ -127,6 +156,7 @@ async def analyze_prescription(
                 "top_pick": None,
                 "flagged_for_review": True,
                 "patient_summary": None,
+                "allergy_flag": None,
                 "diagnosis": diagnosis,
                 "source": source,
             },
@@ -156,14 +186,15 @@ async def analyze_prescription(
 
     top = candidates[0]
 
-    # Step 5: patient-facing summary (only if we found a real profile)
+    # Step 5: patient-facing summaries, English + Arabic (only if we found a real profile)
     patient_summary = None
     if top.get("profile"):
-        try:
-            patient_summary = gemini_ai.generate_patient_summary(top["profile"], diagnosis)
-        except Exception:
-            logger.warning("Patient summary generation failed (Gemini unavailable?).", exc_info=True)
-            patient_summary = UNAVAILABLE_SUMMARY
+        patient_summary = _generate_bilingual_summary(top["profile"], diagnosis)
+
+    # Step 6: allergy cross-check against the patient's stored allergy list
+    allergy_flag = None
+    if top.get("profile") and allergy_list:
+        allergy_flag = allergy_check.check_allergy_conflict(top["profile"], allergy_list)
 
     record = scan_store.create_scan(
         {
@@ -171,8 +202,9 @@ async def analyze_prescription(
             "cleaned_drug_name": cleaned_drug_name,
             "candidates": candidates,
             "top_pick": top,
-            "flagged_for_review": flagged_low_confidence or not top.get("profile"),
+            "flagged_for_review": flagged_low_confidence or not top.get("profile") or bool(allergy_flag),
             "patient_summary": patient_summary,
+            "allergy_flag": allergy_flag,
             "diagnosis": diagnosis,
             "source": source,
         },

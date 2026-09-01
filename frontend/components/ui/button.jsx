@@ -7,10 +7,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-brand text-white hover:bg-brand-ink",
+        primary: "bg-brand text-white hover:bg-brand-ink shadow-sm shadow-brand/25",
         secondary: "bg-surface-raised text-ink border border-border hover:bg-surface-sunken",
         ghost: "text-ink-muted hover:bg-surface-sunken hover:text-ink",
         danger: "bg-danger text-white hover:brightness-95",
+        vivid: "bg-gradient-to-r from-brand to-violet text-white shadow-md shadow-brand/30 hover:brightness-110",
       },
       size: {
         default: "h-11 px-5",

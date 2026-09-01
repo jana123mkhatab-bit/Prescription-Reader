@@ -48,4 +48,15 @@ def get_drug_profile(drug_name: str) -> dict | None:
         "dosage": first("dosage_and_administration", "Not specified — consult your doctor or pharmacist."),
         "side_effects": first("adverse_reactions", "Not available."),
         "warnings": first("warnings", ""),
+        # Used by interactions.py / allergy_check.py — not surfaced directly to patients.
+        "drug_interactions": first("drug_interactions", ""),
+        "boxed_warning": first("boxed_warning", ""),
+        "contraindications": first("contraindications", ""),
+        "pharm_class": sorted(
+            set(
+                (openfda.get("pharm_class_epc") or [])
+                + (openfda.get("pharm_class_moa") or [])
+                + (openfda.get("pharm_class_cs") or [])
+            )
+        ),
     }

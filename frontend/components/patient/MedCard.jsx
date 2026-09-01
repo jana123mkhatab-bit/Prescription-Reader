@@ -12,32 +12,44 @@ function scheduleSummary(schedule) {
   return `${days} at ${schedule.times.join(", ")}`;
 }
 
-export function MedCard({ med, onRemove }) {
-  const hasFlag = med.flaggedWith?.length > 0;
+export function MedCard({ med, onRemove, interactionPairs = [] }) {
+  const flagged = interactionPairs.filter((p) => p.flagged_for_review);
+  const hasFlag = flagged.length > 0;
   const [schedule, setSchedule] = useState(() => (typeof window !== "undefined" ? getSchedule(med.id) : null));
   const [editingSchedule, setEditingSchedule] = useState(false);
   const summary = scheduleSummary(schedule);
 
   return (
-    <Card>
+    <Card className={hasFlag ? "border-danger-soft" : undefined}>
       <CardContent className="flex flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex flex-col gap-1.5">
-            <Link href={`/patient/results/${med.scanId}`} className="font-display text-base font-medium text-ink hover:text-brand">
+            <Link href={`/patient/results/${med.scanId}`} className="font-display text-base font-semibold text-ink hover:text-brand">
               {med.brandName || med.genericName}
             </Link>
             {med.genericName && med.genericName !== med.brandName && (
               <span className="text-xs text-ink-faint">{med.genericName}</span>
             )}
-            <Badge tone={hasFlag ? "warning" : "success"} className="mt-1 w-fit">
+            <Badge tone={hasFlag ? "danger" : "success"} className="mt-1 w-fit">
               {hasFlag ? <ShieldAlert className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
-              {hasFlag ? "Possible interaction — ask your pharmacist" : "No known interaction flagged"}
+              {hasFlag ? `${flagged.length} possible interaction${flagged.length > 1 ? "s" : ""}` : "No known interaction flagged"}
             </Badge>
           </div>
           <button onClick={() => onRemove(med.id)} className="text-xs text-ink-faint hover:text-danger">
             Remove
           </button>
         </div>
+
+        {hasFlag && (
+          <ul className="flex flex-col gap-1 rounded-DEFAULT bg-danger-soft px-3 py-2.5 text-xs text-danger">
+            {flagged.map((p, i) => (
+              <li key={i}>
+                <span className="font-semibold">with {p.drug_a === (med.genericName || med.brandName) ? p.drug_b : p.drug_a}:</span>{" "}
+                {p.reason}
+              </li>
+            ))}
+          </ul>
+        )}
 
         <button
           type="button"

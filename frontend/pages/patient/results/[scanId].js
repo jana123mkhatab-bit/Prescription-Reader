@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import useSWR from "swr";
-import { CheckCircle2, PlusCircle } from "lucide-react";
+import { CheckCircle2, PlusCircle, ArrowRight } from "lucide-react";
 import { ConfidenceRing } from "@/components/shared/ConfidenceRing";
 import { ReviewBanner } from "@/components/patient/ReviewBanner";
+import { AllergyWarning } from "@/components/patient/AllergyWarning";
 import { SummaryCards } from "@/components/patient/SummaryCards";
+import { DrugChat } from "@/components/patient/DrugChat";
+import { ShareCard } from "@/components/patient/ShareCard";
 import { CandidateList } from "@/components/shared/CandidateList";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ErrorState } from "@/components/shared/ErrorState";
@@ -33,7 +36,7 @@ export default function ResultsPage() {
 
   if (isLoading || !scanId) {
     return (
-      <div className="flex flex-col gap-4 py-6">
+      <div className="mx-auto flex max-w-3xl flex-col gap-4 py-6">
         <Skeleton className="h-24 w-full" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-32 w-full" />
@@ -55,15 +58,17 @@ export default function ResultsPage() {
   }
 
   const top = scan.top_pick;
+  const drugName = top.profile?.brand_name || top.drug_name;
 
   return (
-    <div className="flex flex-col gap-6 py-4">
-      {scan.flagged_for_review && <ReviewBanner />}
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 py-4">
+      {scan.allergy_flag?.conflict && <AllergyWarning allergyFlag={scan.allergy_flag} />}
+      {scan.flagged_for_review && !scan.allergy_flag?.conflict && <ReviewBanner />}
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 rounded-lg border border-border bg-surface-raised p-5">
         <ConfidenceRing value={top.confidence} label="match" />
         <div>
-          <h1 className="font-display text-2xl font-medium text-ink">{scan.cleaned_drug_name || scan.raw_ocr_text}</h1>
+          <h1 className="font-display text-2xl font-bold text-ink">{scan.cleaned_drug_name || scan.raw_ocr_text}</h1>
           {(top.profile?.brand_name || top.drug_name) && (
             <p className="text-sm text-ink-muted">Matched as: {top.profile?.brand_name || top.drug_name}</p>
           )}
@@ -72,7 +77,7 @@ export default function ResultsPage() {
 
       <Button
         variant={added ? "secondary" : "primary"}
-        size="sm"
+        size="lg"
         className="w-fit"
         disabled={added}
         onClick={addToMedications}
@@ -82,6 +87,10 @@ export default function ResultsPage() {
       </Button>
 
       <SummaryCards summary={scan.patient_summary} />
+
+      {drugName && <DrugChat drugName={drugName} />}
+
+      {drugName && <ShareCard scanId={scan.id} />}
 
       {/* OCR debug strip — shows what the model read vs what was matched */}
       <div className="rounded-md border border-border bg-surface-raised px-4 py-3 text-xs text-ink-muted space-y-1">
@@ -96,8 +105,8 @@ export default function ResultsPage() {
         </div>
       )}
 
-      <Link href="/patient/medications" className="text-sm font-medium text-brand underline underline-offset-2">
-        View My Medications
+      <Link href="/patient/medications" className="flex items-center gap-1 text-sm font-medium text-brand hover:underline underline-offset-2">
+        View My Medications <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>
   );

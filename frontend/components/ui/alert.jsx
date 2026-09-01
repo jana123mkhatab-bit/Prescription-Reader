@@ -6,6 +6,8 @@ const alertVariants = cva("flex items-start gap-3 rounded-lg border p-4", {
     tone: {
       neutral: "border-border bg-surface-raised text-ink",
       brand: "border-transparent bg-brand-soft text-brand-ink",
+      secondary: "border-transparent bg-secondary-soft text-secondary-ink",
+      violet: "border-transparent bg-violet-soft text-violet-ink",
       warning: "border-transparent bg-warning-soft text-warning",
       danger: "border-transparent bg-danger-soft text-danger",
     },
