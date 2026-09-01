@@ -1,5 +1,8 @@
 # Prescription AI Co-Worker
 
+> 🛠️ **Built in IBM BOB** — IBM BOB was the primary IDE/coding-assistant environment used
+> throughout this project's development. See [How IBM BOB was used](#how-ibm-bob-was-used) below.
+
 AI co-worker for pharmacy staff and patients: reads handwritten prescriptions, cross-checks
 predictions against the patient's diagnosis, flags low-confidence reads for human review, and
 generates a plain-language patient summary (indications, dosage, side effects, nutrition notes).
@@ -39,8 +42,9 @@ Open-vocabulary pipeline — no custom training data required:
 `flagged_for_review` fires if *either*: the OCR→RxNorm match score is low (handwriting was ambiguous), or the diagnosis match score is low (the top drug doesn't semantically fit the stated diagnosis). It never silently auto-approves a low-confidence result — the UI must surface it as needing pharmacist verification.
 
 ## How IBM BOB was used
-IBM BOB was used as the primary coding assistant for the OCR pipeline rework in
-`backend/app/services/ocr.py` and `backend/app/routes/prescription.py`:
+IBM BOB was the primary IDE and coding-assistant environment used to build this project. A
+concrete example of that workflow — the OCR pipeline rework in `backend/app/services/ocr.py`
+and `backend/app/routes/prescription.py`:
 
 - **Caught a conflict before coding.** The request assumed TrOCR, but `ocr.py` had a
   documented prior decision to use Tesseract instead, because TrOCR was found to hallucinate
